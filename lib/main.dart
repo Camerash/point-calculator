@@ -43,8 +43,9 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
 
   int numberOfPlayers = 4;
-  List<int> points;
-  List<int> calculatedPoints;
+  double multiplier = 1;
+  List<double> points;
+  List<double> calculatedPoints;
 
   @override
   void initState() {
@@ -75,6 +76,37 @@ class _MyHomePageState extends State<MyHomePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: this.getTextFields(),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      Text("x", style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),),
+                      SizedBox(
+                        width: 100,
+                        child: TextField(
+                          controller: TextEditingController(text: this.getFormattedDouble(this.multiplier)),
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(
+                            fontSize: 20,
+                          ),
+                          onChanged: (text) {
+                            if(text.isEmpty) {
+                              this.multiplier = 1.0;
+                            } else {
+                              this.multiplier = double.parse(text);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -145,7 +177,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 fontSize: 20,
               ),
               onChanged: (text) {
-                this.points[i] = int.parse(text);
+                if(text.isEmpty) {
+                  this.points[i] = 0;
+                } else {
+                  this.points[i] = double.parse(text);
+                }
               },
             ),
           ),
@@ -160,12 +196,12 @@ class _MyHomePageState extends State<MyHomePage> {
     List<Widget> texts = [];
 
     for (int i = 0; i < this.numberOfPlayers; i++) {
-      int score =
+      double score =
           this.calculatedPoints.isNotEmpty ? this.calculatedPoints[i] : 0;
 
       texts.add(Expanded(
         child: Text(
-          score.toString(),
+          this.getFormattedDouble(score),
           textAlign: TextAlign.center,
           style: TextStyle(
             color: score > 0
@@ -182,11 +218,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void calculate() {
-    if (this.points.length != this.numberOfPlayers) {
-      showDialog(context: context, child: Text("請輸入所有點數"));
-      return;
-    }
-
     this.calculatedPoints.fillRange(0, this.numberOfPlayers, 0);
 
     for (int calculatingPlayer = 0;
@@ -198,7 +229,13 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
 
+    this.calculatedPoints = this.calculatedPoints.map((point) => point * this.multiplier).toList();
+
     /// Update UI
     setState(() {});
+  }
+
+  String getFormattedDouble(double double) {
+    return double.toStringAsFixed(double.truncateToDouble() == double ? 0 : 2);
   }
 }
